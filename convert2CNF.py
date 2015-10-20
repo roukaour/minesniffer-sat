@@ -34,6 +34,7 @@ class Board(object):
 	def number_variables(self):
 		n = 1
 		for (i, pos) in enumerate(self.positions()):
+			assert self[pos] is not None
 			if self[pos] == -1:
 				self.vars[pos] = n
 				n += 1
@@ -80,5 +81,9 @@ if __name__ == '__main__':
 	if len(sys.argv) < 3:
 		print 'Layout or output file not specified.'
 		exit(-1)
-	board = parse_file(sys.argv[1])
+	try:
+		board = parse_file(sys.argv[1])
+	except:
+		print 'Parse Error.'
+		exit(-1)
 	convert2CNF(board, sys.argv[2])
