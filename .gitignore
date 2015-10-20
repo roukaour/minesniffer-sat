@@ -1,6 +1,7 @@
 __pycache__/
 .idea/
 *.py[cod]
+*.xwam
 report/*.aux
 report/*.log
 report/*.synctex.gz
