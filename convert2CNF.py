@@ -1,5 +1,5 @@
 import sys
-from itertools import product
+from itertools import product, combinations
 
 class Board(object):
 	
@@ -18,13 +18,16 @@ class Board(object):
 		assert 0 <= i < self.height and 0 <= j < self.width and -1 <= value <= 8
 		self.board[i][j] = value
 	
+	def positions(self):
+		return product(xrange(self.height), xrange(self.width))
+	
 	def neighbors(self, pos):
 		i, j = pos
 		assert 0 <= i < self.height and 0 <= j < self.width
 		for (di, dj) in product([-1, 0, 1], [-1, 0, 1]):
 			ni, nj = i + di, j + dj
 			if 0 <= ni < self.height and 0 <= nj < self.width:
-				yield self[ni, nj]
+				yield (ni, nj)
 
 def parse_file(filepath):
 	# read the layout file to the board array
@@ -33,14 +36,22 @@ def parse_file(filepath):
 		board = Board(height, width)
 		for i in xrange(height):
 			tokens = fin.readline().strip().split(',')
-			j in xrange(width):
+			for j in xrange(width):
 				board[i, j] = -1 if tokens[j] == 'X' else int(tokens[j])
 	return board
 
 def convert2CNF(board, filepath):
 	# interpret the number constraints
 	fout = open(filepath, 'w')
-	# TODO: convert board to CNF and write to fout
+	for pos in board.positions():
+		if board[pos] == -1: continue
+		unknowns = [n for n in board.neighbors(pos) if board[n] == -1]
+		print pos, '==', board[pos], 'and has', len(unknowns), 'neighboring unknowns'
+		# pos has M neighboring mines and has K neighboring unknowns
+		# (M == board[pos], K = len(unknowns))
+		# Exactly M of the K unknowns are mines, and exactly K-M are safe
+		# So in any subset of M+1 unknowns, one must be safe
+		# And in any subset of K-M+1 unknowns, one must be a mine
 	fout.close()
 
 if __name__ == '__main__':
