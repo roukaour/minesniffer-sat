@@ -1,6 +1,7 @@
 import sys
 from itertools import product, combinations
 
+
 class Board(object):
 
 	def __init__(self, filepath):
@@ -54,9 +55,11 @@ class Board(object):
 	def neighbor_variables(self, pos):
 		return [self[n] for n in self.neighbors(pos) if self.is_var(n)]
 
+
 def parse_file(filepath):
 	# Read the layout file to a Minesniffer board
 	return Board(filepath)
+
 
 def distribute(*conjunctions):
 	# Given a disjunction of conjunctions, generate a conjunction of disjunctions
@@ -68,6 +71,7 @@ def distribute(*conjunctions):
 			for disjunction in distribute(*conjunctions[1:]):
 				yield frozenset([term]) | disjunction
 
+
 def convert2CNF(board, filepath):
 	# Prepare the CNF output file (comment with the board file name)
 	fout = open(filepath, 'w')
@@ -78,40 +82,30 @@ def convert2CNF(board, filepath):
 		num_mines = board[hint]
 		vars = board.neighbor_variables(hint)
 		# Assign M mines to the K variables (M = num_mines, K = len(vars))
+
 		# Generate all K choose M possible assignments of mines
 		assignments = [mines + tuple(-v for v in vars if v not in mines)
 			for mines in combinations(vars, num_mines)]
 		# A set of assignments is a disjunction of conjunctions, so
 		# distribute the disjunctions to get a conjunction of disjunctions
 		clauses.update(distribute(*assignments))
+
+		# An alternative method which generates fewer constraints:
+		# # In any subset of M+1 variables, one must be safe
+		# clauses.update(frozenset(-v for v in s) for s in combinations(vars, num_mines + 1))
+		# # In any subset of K-M+1 variables, one must be a mine
+		# clauses.update(frozenset(s) for s in combinations(vars, len(vars) - num_mines + 1))
+
+	# This is too much like doing MiniSAT's job, so it is disabled
+	# # Prune clauses which are weaker than others (e.g. A|B|C is weaker than A|B)
+	# clauses = {c for c in clauses if not any(s for s in clauses if s != c and s.issubset(c))}
+
 	# Write the clauses to the output file
 	fout.write('p cnf %d %d\n' % (board.num_vars, len(clauses)))
 	for clause in clauses:
 		fout.write(' '.join(str(v) for v in clause) + ' 0\n')
 	fout.close()
 
-# This function is not used
-def convert2CNF_efficient(board, filepath):
-	# Prepare the CNF output file (comment with the board file name)
-	fout = open(filepath, 'w')
-	fout.write('c ' + board.filepath.replace('\n', ' ') + '\n')
-	# Derive clauses from each hint on the board
-	clauses = set()
-	for hint in board.hints():
-		num_mines = board[hint]
-		vars = board.neighbor_variables(hint)
-		# Assign M mines to the K variables (M = num_mines, K = len(vars))
-		# In any subset of M+1 variables, one must be safe
-		clauses.update(frozenset(-v for v in s) for s in combinations(vars, num_mines + 1))
-		# In any subset of K-M+1 variables, one must be a mine
-		clauses.update(frozenset(s) for s in combinations(vars, len(vars) - num_mines + 1))
-	# Prune clauses which are weaker than others (e.g. A|B|C is weaker than A|B)
-	clauses = {c for c in clauses if not any(s for s in clauses if s != c and s.issubset(c))}
-	# Write the clauses to the output file
-	fout.write('p cnf %d %d\n' % (board.num_vars, len(clauses)))
-	for clause in clauses:
-		fout.write(' '.join(str(v) for v in clause) + ' 0\n')
-	fout.close()
 
 if __name__ == '__main__':
 	if len(sys.argv) < 3:
