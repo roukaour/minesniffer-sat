@@ -85,8 +85,10 @@ def convert2CNF(board, filepath):
 		# # In any subset of K-M+1 variables, one must be a mine
 		# clauses.update(frozenset(s) for s in combinations(vars, len(vars) - num_mines + 1))
 
-	# This is too much like doing MiniSAT's job, so it is disabled
-	# # Prune clauses which are weaker than others (e.g. A|B|C is weaker than A|B)
+	# These steps are too much like doing MiniSAT's job:
+	# # Prune clauses which contain tautologies (e.g. A|-A)
+	# clauses = {c for c in clauses if not any(-v in c for v in c)}
+	# # Prune clauses which contain other clauses (e.g. A|B|C contains A|B)
 	# clauses = {c for c in clauses if not any(s for s in clauses if s != c and s.issubset(c))}
 
 	# Write the clauses to the output file
