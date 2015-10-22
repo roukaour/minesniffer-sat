@@ -1,5 +1,5 @@
 import sys
-from itertools import product, combinations
+import itertools
 
 class Board(object):
 
@@ -21,15 +21,18 @@ class Board(object):
 		self.board[i][j] = value
 
 	def positions(self):
-		return product(xrange(self.height), xrange(self.width))
+		return itertools.product(xrange(self.height), xrange(self.width))
 
 	def neighbors(self, pos):
 		i, j = pos
 		assert 0 <= i < self.height and 0 <= j < self.width
-		for (di, dj) in product([-1, 0, 1], [-1, 0, 1]):
+		for (di, dj) in itertools.product([-1, 0, 1], [-1, 0, 1]):
 			ni, nj = i + di, j + dj
 			if 0 <= ni < self.height and 0 <= nj < self.width:
 				yield (ni, nj)
+
+	def neighbor_variables(self, pos):
+		return [self.vars[n] for n in self.neighbors(pos) if self[n] == -1]
 
 	def number_variables(self):
 		n = 1
@@ -40,7 +43,6 @@ class Board(object):
 				n += 1
 
 def parse_file(filepath):
-	# Read the layout file to the board array
 	with open(filepath, 'r') as fin:
 		height, width = (int(t) for t in fin.readline().strip().split())
 		board = Board(filepath, height, width)
@@ -51,10 +53,45 @@ def parse_file(filepath):
 	board.number_variables()
 	return board
 
+def make_conjunctions(unknowns, num_mines):
+	all_mines = set(unknowns)
+	for mine_cells in itertools.combinations(unknowns, num_mines):
+		mine_cells = set(mine_cells)
+		safe_cells = {-v for v in all_mines - mine_cells}
+		yield list(mine_cells | safe_cells)
+
+def distribute(*conjunctions):
+	if not conjunctions:
+		yield []
+	else:
+		first = conjunctions[0]
+		for term in first:
+			for disjunction in distribute(*conjunctions[1:]):
+				yield [term] + disjunction
+
 def convert2CNF(board, filepath):
-	# Interpret the number constraints
+	# Prepare the CNF output file (comment with the board file name)
 	fout = open(filepath, 'w')
 	fout.write('c ' + board.filepath.replace('\n', ' ') + '\n')
+	# Derive clauses from each number on the board
+	clauses = []
+	for pos in board.positions():
+		num_mines = board[pos]
+		if num_mines == -1: continue
+		unknowns = board.neighbor_variables(pos)
+		assignments = make_conjunctions(unknowns, num_mines)
+		clauses.extend(distribute(*assignments))
+	# Write the clauses to the output file
+	fout.write('p cnf %d %d\n' % (len(board.vars), len(clauses)))
+	for clause in clauses:
+		fout.write(' '.join(str(v) for v in clause) + ' 0\n')
+	fout.close()
+
+def convert2CNF_efficient(board, filepath):
+	# Prepare the CNF output file (comment with the board file name)
+	fout = open(filepath, 'w')
+	fout.write('c ' + board.filepath.replace('\n', ' ') + '\n')
+	# Derive clauses from each number on the board
 	clauses = set()
 	for pos in board.positions():
 		num_mines = board[pos]
