@@ -56,10 +56,10 @@ def parse_file(filepath):
 	return board
 
 def make_conjunctions(unknowns, num_mines):
-	all_mines = set(unknowns)
+	all_cells = set(unknowns)
 	for mine_cells in combinations(unknowns, num_mines):
 		mine_cells = set(mine_cells)
-		safe_cells = {-v for v in all_mines - mine_cells}
+		safe_cells = {-v for v in all_cells - mine_cells}
 		yield list(mine_cells | safe_cells)
 
 def distribute(*conjunctions):
