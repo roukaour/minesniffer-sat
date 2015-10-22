@@ -3,12 +3,20 @@ from itertools import product, combinations
 
 class Board(object):
 
-	def __init__(self, filepath, height, width):
+	def __init__(self, filepath):
 		self.filepath = filepath
-		self.height = height
-		self.width = width
-		self.board = [[None] * width for _ in xrange(height)]
-		self.num_vars = 0
+		with open(filepath, 'r') as fin:
+			self.height, self.width = (int(t) for t in fin.readline().split())
+			self.board = [[None] * self.width for _ in xrange(self.height)]
+			self.num_vars = 0
+			for i in xrange(self.height):
+				tokens = fin.readline().strip().split(',')
+				for j in xrange(self.width):
+					if tokens[j] == 'X':
+						self.num_vars += 1
+						self[i, j] = -self.num_vars
+					else:
+						self[i, j] = int(tokens[j])
 
 	def __getitem__(self, pos):
 		i, j = pos
@@ -18,7 +26,7 @@ class Board(object):
 	def __setitem__(self, pos, value):
 		i, j = pos
 		assert 0 <= i < self.height and 0 <= j < self.width
-		assert 0 <= value <= 8 or -value <= self.num_vars
+		assert -self.num_vars <= value <= 8
 		self.board[i][j] = value
 
 	def positions(self):
@@ -47,18 +55,8 @@ class Board(object):
 		return [self[n] for n in self.neighbors(pos) if self.is_var(n)]
 
 def parse_file(filepath):
-	with open(filepath, 'r') as fin:
-		height, width = (int(t) for t in fin.readline().strip().split())
-		board = Board(filepath, height, width)
-		for i in xrange(height):
-			tokens = fin.readline().strip().split(',')
-			for j in xrange(width):
-				if tokens[j] == 'X':
-					board.num_vars += 1
-					board[i, j] = -board.num_vars
-				else:
-					board[i, j] = int(tokens[j])
-	return board
+	# Read the layout file to a Minesniffer board
+	return Board(filepath)
 
 def distribute(*conjunctions):
 	# Given a disjunction of conjunctions, generate a conjunction of disjunctions
@@ -93,6 +91,7 @@ def convert2CNF(board, filepath):
 		fout.write(' '.join(str(v) for v in clause) + ' 0\n')
 	fout.close()
 
+# This function is not used
 def convert2CNF_efficient(board, filepath):
 	# Prepare the CNF output file (comment with the board file name)
 	fout = open(filepath, 'w')
