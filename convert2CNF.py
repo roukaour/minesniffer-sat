@@ -24,6 +24,11 @@ class Board(object):
 	def positions(self):
 		return product(xrange(self.height), xrange(self.width))
 
+	def hints(self):
+		for pos in self.positions():
+			if not self.is_var(pos):
+				yield pos
+
 	def is_var(self, pos):
 		i, j = pos
 		assert 0 <= i < self.height and 0 <= j < self.width
@@ -68,14 +73,13 @@ def convert2CNF(board, filepath):
 	# Prepare the CNF output file (comment with the board file name)
 	fout = open(filepath, 'w')
 	fout.write('c ' + board.filepath.replace('\n', ' ') + '\n')
-	# Derive clauses from each number on the board
+	# Derive clauses from each hint on the board
 	clauses = set()
-	for pos in board.positions():
-		if board.is_var(pos): continue
+	for pos in board.hints():
 		num_mines = board[pos]
-		unknowns = board.neighbor_variables(pos)
-		assignments = [mines + tuple(-v for v in unknowns if v not in mines)
-			for mines in combinations(unknowns, num_mines)]
+		vars = board.neighbor_variables(pos)
+		assignments = [mines + tuple(-v for v in vars if v not in mines)
+			for mines in combinations(vars, num_mines)]
 		clauses.update(distribute(*assignments))
 	# Write the clauses to the output file
 	fout.write('p cnf %d %d\n' % (board.num_vars, len(clauses)))
@@ -87,20 +91,19 @@ def convert2CNF_efficient(board, filepath):
 	# Prepare the CNF output file (comment with the board file name)
 	fout = open(filepath, 'w')
 	fout.write('c ' + board.filepath.replace('\n', ' ') + '\n')
-	# Derive clauses from each number on the board
+	# Derive clauses from each hint on the board
 	clauses = set()
-	for pos in board.positions():
-		if board.is_var(pos): continue
+	for pos in board.hints():
 		num_mines = board[pos]
-		unknowns = board.neighbor_variables(pos)
-		# pos has M neighboring mines and has K neighboring unknowns
-		# (M == num_mines, K = len(unknowns))
-		# Exactly M of the K unknowns are mines, and exactly K-M are safe
-		# So in any subset of M+1 unknowns, one must be safe
-		for safe_subset in combinations(unknowns, num_mines + 1):
+		vars = board.neighbor_variables(pos)
+		# pos has M neighboring mines and has K neighboring variables
+		# (M == num_mines, K = len(vars))
+		# Exactly M of the K variables are mines, and exactly K-M are safe
+		# So in any subset of M+1 variables, one must be safe
+		for safe_subset in combinations(vars, num_mines + 1):
 			clauses.add(frozenset(-v for v in safe_subset))
-		# And in any subset of K-M+1 unknowns, one must be a mine
-		for mine_subset in combinations(unknowns, len(unknowns) - num_mines + 1):
+		# And in any subset of K-M+1 variables, one must be a mine
+		for mine_subset in combinations(vars, len(vars) - num_mines + 1):
 			clauses.add(frozenset(mine_subset))
 	# Prune clauses which are weaker than others (e.g. A|B|C is weaker than A|B)
 	clauses = {c for c in clauses if not any(s for s in clauses if s != c and s.issubset(c))}
