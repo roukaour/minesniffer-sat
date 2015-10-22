@@ -11,7 +11,7 @@ adjacent(A, [_|As], B, [_|Bs]) :- adjacent(A, As, B, Bs).
 arranged(A, [A|_], B, [_,B|_]).
 arranged(A, [_|As], B, [_|Bs]) :- arranged(A, As, B, Bs).
 
-solve([Colors, Drinks, Nations, Smokes, Pets]) :-
+solution(Colors, Drinks, Nations, Smokes, Pets) :-
 	% Initialize the lists of five unique things.
 	Colors = [_, _, _, _, _],
 	Drinks = [_, _, _, _, _],
@@ -48,7 +48,9 @@ solve([Colors, Drinks, Nations, Smokes, Pets]) :-
 	Drinks = [_, _, milk, _, _],
 	% Who drinks water?
 	correspond(water, Drinks, WhoDrinksWater, Nations),
-	(write(WhoDrinksWater), writeln(' drinks water.'), fail; true),
+	(write('The '), write(WhoDrinksWater), writeln(' drinks water.'), fail; true),
 	% Who keeps the zebra?
 	correspond(zebra, Pets, WhoKeepsTheZebra, Nations),
-	(write(WhoKeepsTheZebra), writeln(' keeps the zebra.'), fail; true).
+	(write('The '), write(WhoKeepsTheZebra), writeln(' keeps the zebra.'), fail; true).
+
+solve :- solution(_, _, _, _, _).
