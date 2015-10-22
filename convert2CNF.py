@@ -78,18 +78,24 @@ def convert2CNF(board, filepath):
 		# A set of assignments is a disjunction of conjunctions, so
 		# use the distributive property to get a conjunction of disjunctions
 		clauses.update(frozenset(c) for c in product(*assignments))
+		# This creates K^(K choose M) constraints, which quickly becomes
+		# impossible for large K when M is close to K/2 (e.g. K=6, M=3 creates
+		# 3.7 quadrillion (3.7*10^15) constraints, and K=8, M=4 creates
+		# 1.6*10^63 constraints).
 
 		# An alternative method which generates fewer constraints:
-		# # In any subset of M+1 variables, one must be safe
-		# clauses.update(frozenset(-v for v in s) for s in combinations(vars, num_mines + 1))
-		# # In any subset of K-M+1 variables, one must be a mine
-		# clauses.update(frozenset(s) for s in combinations(vars, len(vars) - num_mines + 1))
+		# In any subset of M+1 variables, one must be safe
+		#clauses.update(frozenset(-v for v in s) for s in combinations(vars, num_mines + 1))
+		# In any subset of K-M+1 variables, one must be a mine
+		#clauses.update(frozenset(s) for s in combinations(vars, len(vars) - num_mines + 1))
+		# This creates (K choose M+1) + (K choose K-M+1) constraints (e.g.
+		# K=8, M=4 creates 112 constraints).
 
-	# These steps are too much like doing MiniSAT's job:
-	# # Prune clauses which contain tautologies (e.g. A|-A)
-	# clauses = {c for c in clauses if not any(-v in c for v in c)}
-	# # Prune clauses which contain other clauses (e.g. A|B|C contains A|B)
-	# clauses = {c for c in clauses if not any(s for s in clauses if s != c and s.issubset(c))}
+	# Pruning is disabled; it's too close to doing MiniSAT's job
+	# Prune clauses which contain tautologies (e.g. A|-A)
+	#clauses = {c for c in clauses if not any(-v in c for v in c)}
+	# Prune clauses which contain other clauses (e.g. A|B|C contains A|B)
+	#clauses = {c for c in clauses if not any(s for s in clauses if s != c and s.issubset(c))}
 
 	# Write the clauses to the output file
 	fout.write('p cnf %d %d\n' % (board.num_vars, len(clauses)))
