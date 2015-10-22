@@ -73,8 +73,8 @@ def convert2CNF(board, filepath):
 		# Assign M mines to the K variables (M = num_mines, K = len(vars))
 
 		# Generate all K choose M possible assignments of mines
-		assignments = [mines + tuple(-v for v in vars if v not in mines)
-			for mines in combinations(vars, num_mines)]
+		assignments = (mines + tuple(-v for v in vars if v not in mines)
+			for mines in combinations(vars, num_mines))
 		# A set of assignments is a disjunction of conjunctions, so
 		# use the distributive property to get a conjunction of disjunctions
 		clauses.update(frozenset(c) for c in product(*assignments))
