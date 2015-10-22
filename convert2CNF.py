@@ -61,14 +61,14 @@ def parse_file(filepath):
 	return Board(filepath)
 
 
-def distribute(*conjunctions):
+def distribute(conjunctions):
 	# Given a disjunction of conjunctions, generate a conjunction of disjunctions
 	if not conjunctions:
 		yield frozenset([])
 	else:
 		first = conjunctions[0]
 		for term in first:
-			for disjunction in distribute(*conjunctions[1:]):
+			for disjunction in distribute(conjunctions[1:]):
 				yield frozenset([term]) | disjunction
 
 
@@ -88,7 +88,7 @@ def convert2CNF(board, filepath):
 			for mines in combinations(vars, num_mines)]
 		# A set of assignments is a disjunction of conjunctions, so
 		# distribute the disjunctions to get a conjunction of disjunctions
-		clauses.update(distribute(*assignments))
+		clauses.update(distribute(assignments))
 
 		# An alternative method which generates fewer constraints:
 		# # In any subset of M+1 variables, one must be safe
