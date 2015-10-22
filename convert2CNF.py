@@ -74,12 +74,11 @@ def convert2CNF(board, filepath):
 	fout.write('c ' + board.filepath.replace('\n', ' ') + '\n')
 	# Derive clauses from each hint on the board
 	clauses = set()
-	for pos in board.hints():
-		num_mines = board[pos]
-		vars = board.neighbor_variables(pos)
-		# pos has M neighboring mines and has K neighboring variables
-		# (M == num_mines, K == len(vars))
-		# Generate all 'K choose M' possible assignments of mines
+	for hint in board.hints():
+		num_mines = board[hint]
+		vars = board.neighbor_variables(hint)
+		# Assign M mines to the K variables (M = num_mines, K = len(vars))
+		# Generate all K choose M possible assignments of mines
 		assignments = [mines + tuple(-v for v in vars if v not in mines)
 			for mines in combinations(vars, num_mines)]
 		# A set of assignments is a disjunction of conjunctions, so
@@ -98,15 +97,13 @@ def convert2CNF_efficient(board, filepath):
 	fout.write('c ' + board.filepath.replace('\n', ' ') + '\n')
 	# Derive clauses from each hint on the board
 	clauses = set()
-	for pos in board.hints():
-		num_mines = board[pos]
-		vars = board.neighbor_variables(pos)
-		# pos has M neighboring mines and has K neighboring variables
-		# (M == num_mines, K == len(vars))
-		# Exactly M of the K variables are mines, and exactly K-M are safe
-		# So in any subset of M+1 variables, one must be safe
+	for hint in board.hints():
+		num_mines = board[hint]
+		vars = board.neighbor_variables(hint)
+		# Assign M mines to the K variables (M = num_mines, K = len(vars))
+		# In any subset of M+1 variables, one must be safe
 		clauses.update(frozenset(-v for v in s) for s in combinations(vars, num_mines + 1))
-		# And in any subset of K-M+1 variables, one must be a mine
+		# In any subset of K-M+1 variables, one must be a mine
 		clauses.update(frozenset(s) for s in combinations(vars, len(vars) - num_mines + 1))
 	# Prune clauses which are weaker than others (e.g. A|B|C is weaker than A|B)
 	clauses = {c for c in clauses if not any(s for s in clauses if s != c and s.issubset(c))}
