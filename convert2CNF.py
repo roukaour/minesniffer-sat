@@ -55,13 +55,6 @@ def parse_file(filepath):
 					board[i, j] = int(tokens[j])
 	return board
 
-def make_conjunctions(unknowns, num_mines):
-	all_cells = set(unknowns)
-	for mine_cells in combinations(unknowns, num_mines):
-		mine_cells = set(mine_cells)
-		safe_cells = {-v for v in all_cells - mine_cells}
-		yield list(mine_cells | safe_cells)
-
 def distribute(*conjunctions):
 	if not conjunctions:
 		yield frozenset([])
@@ -81,7 +74,8 @@ def convert2CNF(board, filepath):
 		if board.is_var(pos): continue
 		num_mines = board[pos]
 		unknowns = board.neighbor_variables(pos)
-		assignments = make_conjunctions(unknowns, num_mines)
+		assignments = [mines + tuple(-v for v in unknowns if v not in mines)
+			for mines in combinations(unknowns, num_mines)]
 		clauses.update(distribute(*assignments))
 	# Write the clauses to the output file
 	fout.write('p cnf %d %d\n' % (board.num_vars, len(clauses)))
