@@ -61,6 +61,7 @@ def parse_file(filepath):
 	return board
 
 def distribute(*conjunctions):
+	# Given a disjunction of conjunctions, generate a conjunction of disjunctions
 	if not conjunctions:
 		yield frozenset([])
 	else:
@@ -78,8 +79,13 @@ def convert2CNF(board, filepath):
 	for pos in board.hints():
 		num_mines = board[pos]
 		vars = board.neighbor_variables(pos)
+		# pos has M neighboring mines and has K neighboring variables
+		# (M == num_mines, K == len(vars))
+		# Generate all (K choose M) possible assignments of mines
 		assignments = [mines + tuple(-v for v in vars if v not in mines)
 			for mines in combinations(vars, num_mines)]
+		# A set of assignments is a disjunction of conjunctions, so
+		# distribute the disjunctions to get a conjunction of disjunctions
 		clauses.update(distribute(*assignments))
 	# Write the clauses to the output file
 	fout.write('p cnf %d %d\n' % (board.num_vars, len(clauses)))
@@ -97,7 +103,7 @@ def convert2CNF_efficient(board, filepath):
 		num_mines = board[pos]
 		vars = board.neighbor_variables(pos)
 		# pos has M neighboring mines and has K neighboring variables
-		# (M == num_mines, K = len(vars))
+		# (M == num_mines, K == len(vars))
 		# Exactly M of the K variables are mines, and exactly K-M are safe
 		# So in any subset of M+1 variables, one must be safe
 		for safe_subset in combinations(vars, num_mines + 1):
