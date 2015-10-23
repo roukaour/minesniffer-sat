@@ -86,9 +86,11 @@ def convert2CNF(board, filepath):
 		# a new variable for each assignment while preserving satisfiability.
 		#def tseitin_transform(conjunctions, z_offset):
 		#	for dz, conjunction in enumerate(conjunctions):
+		#		z = z_offset + dz
+		#		yield frozenset([z] + [-v for v in conjunction])
 		#		for var in conjunction:
-		#			yield frozenset([-(z_offset + dz), var])
-		#	yield frozenset(xrange(z_offset, z_offset + dz + 1))
+		#			yield frozenset([-z, var])
+		#	yield frozenset(xrange(z_offset, z + 1))
 		#assignments = [mines + tuple(-v for v in vars if v not in mines)
 		#	for mines in combinations(vars, num_mines)]
 		#clauses.update(tseitin_transform(assignments, board.num_vars + 1))
