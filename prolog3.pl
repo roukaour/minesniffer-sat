@@ -1,3 +1,5 @@
+% II.3 - The Puzzling Case of the Water and Zebra
+
 % Assert that two items in two lists have corresponding relative positions.
 correspond(A, [A|_], B, [B|_]).
 correspond(A, [_|As], B, [_|Bs]) :- correspond(A, As, B, Bs).
