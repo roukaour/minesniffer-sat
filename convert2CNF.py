@@ -95,15 +95,15 @@ def convert2CNF(board, filepath):
 		#	for mines in combinations(vars, num_mines)]
 		#clauses.update(tseitin_transform(assignments, board.num_vars + 1))
 		#board.num_vars += len(assignments)
-		# This generates K*(K choose M)+1 clauses (e.g. K=8, M=4 generates only
-		# 281 clauses).
+		# This generates (K+1)*(K choose M)+1 clauses (e.g. K=8, M=4 generates
+		# 631 clauses).
 
 		# An alternative method which is more efficient:
 		# In any subset of M+1 variables, one must be safe
 		#clauses.update(frozenset(-v for v in s) for s in combinations(vars, num_mines + 1))
 		# In any subset of K-M+1 variables, one must be a mine
 		#clauses.update(frozenset(s) for s in combinations(vars, len(vars) - num_mines + 1))
-		# This generates (K choose M+1) + (K choose K-M+1) clauses (e.g. K=8, M=4
+		# This generates (K choose M+1)+(K choose K-M+1) clauses (e.g. K=8, M=4
 		# generates only 112 clauses).
 
 	# Pruning is disabled; it's too close to doing MiniSAT's job
