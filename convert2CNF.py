@@ -82,6 +82,20 @@ def convert2CNF(board, filepath):
 		# for large K when M is close to K/2 (e.g. K=6, M=3 generates 3.7*10^15
 		# (3.7 quadrillion) clauses, and K=8, M=4 generates 1.6*10^63 clauses).
 
+		# The Tseitin transform can avoid this exponential blowup by introducing
+		# a new variable for each assignment while preserving satisfiability.
+		#def tseitin_transform(conjunctions, z_offset):
+		#	for dz, conjunction in enumerate(conjunctions):
+		#		for var in conjunction:
+		#			yield frozenset([-(z_offset + dz), var])
+		#	yield frozenset(xrange(z_offset, z_offset + dz + 1))
+		#assignments = [mines + tuple(-v for v in vars if v not in mines)
+		#	for mines in combinations(vars, num_mines)]
+		#clauses.update(tseitin_transform(assignments, board.num_vars + 1))
+		#board.num_vars += len(assignments)
+		# This generates K*(K choose M)+1 clauses (e.g. K=8, M=4 generates only
+		# 281 clauses).
+
 		# An alternative method which is more efficient:
 		# In any subset of M+1 variables, one must be safe
 		#clauses.update(frozenset(-v for v in s) for s in combinations(vars, num_mines + 1))
