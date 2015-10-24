@@ -46,7 +46,7 @@ class Board(object):
 	def neighbors(self, pos):
 		i, j = pos
 		assert 0 <= i < self.height and 0 <= j < self.width
-		for (di, dj) in product([-1, 0, 1], [-1, 0, 1]):
+		for di, dj in product([-1, 0, 1], [-1, 0, 1]):
 			if not di and not dj: continue
 			ni, nj = i + di, j + dj
 			if 0 <= ni < self.height and 0 <= nj < self.width:
@@ -63,15 +63,15 @@ def parse_file(filepath):
 
 def tseitin_transform(conjunctions, z_offset):
 	# Convert a disjunction of conjunctions to a conjunction of disjunctions
-	# by introducing a new variable to represent each conjunction
-	for dz, conjunction in enumerate(conjunctions):
-		z = z_offset + dz
-		# 'conjunction implies z' in CNF
+	# by introducing a new Z_i variable to represent each conjunction
+	for i, conjunction in enumerate(conjunctions):
+		z = z_offset + i
+		# Transform 'conjunction implies Z' to CNF
 		yield frozenset([z] + [-v for v in conjunction])
-		# 'not z implies not conjunction' in CNF
+		# Transform 'Z implies conjunction' to CNF
 		for var in conjunction:
 			yield frozenset([-z, var])
-	# 'disjunction of zs' in CNF
+	# Transform disjunction of conjunctions to disjunction of Zs in CNF
 	yield frozenset(xrange(z_offset, z + 1))
 
 
