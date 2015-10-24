@@ -61,6 +61,20 @@ def parse_file(filepath):
 	return Board(filepath)
 
 
+def tseitin_transform(conjunctions, z_offset):
+	# Convert a disjunction of conjunctions to a conjunction of disjunctions
+	# by introducing a new variable to represent each conjunction
+	for dz, conjunction in enumerate(conjunctions):
+		z = z_offset + dz
+		# 'conjunction implies z' in CNF
+		yield frozenset([z] + [-v for v in conjunction])
+		# 'not z implies not conjunction' in CNF
+		for var in conjunction:
+			yield frozenset([-z, var])
+	# 'disjunction of zs' in CNF
+	yield frozenset(xrange(z_offset, z + 1))
+
+
 def convert2CNF(board, filepath):
 	# Prepare the CNF output file (comment with the board file name)
 	fout = open(filepath, 'w')
@@ -73,30 +87,22 @@ def convert2CNF(board, filepath):
 		# Assign M mines to the K variables (M = num_mines, K = len(vars))
 
 		# Generate all K choose M possible assignments of mines and safe cells
-		assignments = (mines + tuple(-v for v in vars if v not in mines)
-			for mines in combinations(vars, num_mines))
-		# A set of assignments is a disjunction of conjunctions, so
-		# use the distributive property to get a conjunction of disjunctions
-		clauses.update(frozenset(c) for c in product(*assignments))
-		# This generates K^(K choose M) clauses, which quickly becomes impossible
-		# for large K when M is close to K/2 (e.g. K=6, M=3 generates 3.7*10^15
-		# (3.7 quadrillion) clauses, and K=8, M=4 generates 1.6*10^63 clauses).
-
-		# The Tseitin transform can avoid this exponential blowup by introducing
-		# a new variable for each assignment while preserving satisfiability.
-		#def tseitin_transform(conjunctions, z_offset):
-		#	for dz, conjunction in enumerate(conjunctions):
-		#		z = z_offset + dz
-		#		yield frozenset([z] + [-v for v in conjunction])
-		#		for var in conjunction:
-		#			yield frozenset([-z, var])
-		#	yield frozenset(xrange(z_offset, z + 1))
-		#assignments = [mines + tuple(-v for v in vars if v not in mines)
-		#	for mines in combinations(vars, num_mines)]
-		#clauses.update(tseitin_transform(assignments, board.num_vars + 1))
-		#board.num_vars += len(assignments)
-		# This generates (K+1)*(K choose M)+1 clauses (e.g. K=8, M=4 generates
-		# 631 clauses).
+		assignments = [mines + tuple(-v for v in vars if v not in mines)
+			for mines in combinations(vars, num_mines)]
+		# A set of assignments is a disjunction of conjunctions, which is not in CNF
+		if len(vars) >= 3 and 0 < num_mines < len(vars):
+			# Use the Tseitin transformation to get a conjunction of disjunctions
+			# that does not exponentially increase the number of clauses
+			clauses.update(tseitin_transform(assignments, board.num_vars + 1))
+			board.num_vars += len(assignments)
+			# This generates (K+1)*(K choose M)+1 clauses (e.g. K=8, M=4
+			# generates 631 clauses).
+		else:
+			# Distribute 'or' over 'and' to get a conjunction of disjunctions
+			clauses.update(frozenset(c) for c in product(*assignments))
+			# This generates K^(K choose M) clauses, which would be impossible
+			# for large K when M is close to K/2 (e.g. K=6, M=3 generates
+			# 3.7*10^15 clauses, and K=8, M=4 generates 1.6*10^63 clauses).
 
 		# An alternative method which is more efficient:
 		# In any subset of M+1 variables, one must be safe
