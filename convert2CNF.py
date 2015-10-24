@@ -90,7 +90,7 @@ def convert2CNF(board, filepath):
 		assignments = [mines + tuple(-v for v in vars if v not in mines)
 			for mines in combinations(vars, num_mines)]
 		# A set of assignments is a disjunction of conjunctions, which is not in CNF
-		if len(vars) >= 3 and 0 < num_mines < len(vars):
+		if len(vars) > 2 and 0 < num_mines < len(vars):
 			# Use the Tseitin transformation to get a conjunction of disjunctions
 			# that does not exponentially increase the number of clauses
 			clauses.update(tseitin_transform(assignments, board.num_vars + 1))
