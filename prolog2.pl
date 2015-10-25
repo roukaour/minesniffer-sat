@@ -4,15 +4,15 @@
 
 % Output should be something like this:
 /*
-topleft goes to center
-top goes to bottomright
-topright goes to bottom
-left goes to right
-center goes to top
-right goes to topleft
-bottomleft goes to left
-bottom goes to topright
-bottomright goes to bottomleft
+topleft goes to center rotated 90
+top goes to bottomright rotated 0
+topright goes to bottom rotated 180
+left goes to right rotated 180
+center goes to top rotated 0
+right goes to topleft rotated 270
+bottomleft goes to left rotated 0
+bottom goes to topright rotated 0
+bottomright goes to bottomleft rotated 90
 */
 
 % Original positions:
