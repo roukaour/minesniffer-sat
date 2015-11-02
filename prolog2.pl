@@ -44,14 +44,15 @@ goal([[P1,P2,P3], [P4,P5,P6], [P7,P8,P9]]) :-
     align3_updown(P3, P6, P9),
     align3_leftright(P1, P2, P3),
     align3_leftright(P4, P5, P6),
-    align3_leftright(P7, P8, P9).
+    align3_leftright(P7, P8, P9),
+    writeln("Found the solution.").
 
-dfs(S, _):-goal(S).
+member(X, [Y|T]) :- X = Y; member(X, T).
+
 dfs(S, SoFar):-
-	writeln(S),
 	move0(S, S2), 
 	\+member(S2, SoFar),
-	dfs(S2, [S2|SoFar]).
+	(goal(S2); dfs(S2, [S2|SoFar])).
 
 solve :- dfs([[[negA, negB, c, d], [a, d, negC, negD], [negD, negC, b, d]], [[negB, negD, negC, d], [d, b, negC, negA], [negA, negD, c, b]],
 [[negA, negB, c, b], [b, negA, negC, a], [negB, a, d, negC]]], []).
