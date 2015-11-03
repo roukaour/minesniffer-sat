@@ -1,73 +1,6 @@
 % II.2 - The Assembly Problem
 
-% TODO:
-
-% Output should be something like this:
-/*
-topleft goes to center rotated 90
-top goes to bottomright rotated 0
-topright goes to bottom rotated 180
-...
-*/
-
-move([A, B, C, D], [B, C, D, A]).
-move([A, B, C, D], [C, D, A, B]).
-move([A, B, C, D], [D, A, B, C]).
-
-move1([[P,P2,P3], [P4,P5,P6], [P7,P8,P9]], [[Pn,P2,P3], [P4,P5,P6], [P7,P8,P9]]) :- move(P, Pn).
-move2([[P1,P,P3], [P4,P5,P6], [P7,P8,P9]], [[P1,Pn,P3], [P4,P5,P6], [P7,P8,P9]]) :- move(P, Pn), align_leftright(P1, Pn).
-move3([[P1,P2,P], [P4,P5,P6], [P7,P8,P9]], [[P1,P2,Pn], [P4,P5,P6], [P7,P8,P9]]) :- move(P, Pn), align_leftright(P2, Pn).
-move4([[P1,P2,P3], [P,P5,P6], [P7,P8,P9]], [[P1,P2,P3], [Pn,P5,P6], [P7,P8,P9]]) :- move(P, Pn), align_updown(P1, Pn).
-move5([[P1,P2,P3], [P4,P,P6], [P7,P8,P9]], [[P1,P2,P3], [P4,Pn,P6], [P7,P8,P9]]) :- move(P, Pn), align_updown(P2, Pn), align_leftright(P4, Pn).
-move6([[P1,P2,P3], [P4,P5,P], [P7,P8,P9]], [[P1,P2,P3], [P4,P5,Pn], [P7,P8,P9]]) :- move(P, Pn), align_updown(P3, Pn), align_leftright(P5, Pn).
-move7([[P1,P2,P3], [P4,P5,P6], [P,P8,P9]], [[P1,P2,P3], [P4,P5,P6], [Pn,P8,P9]]) :- move(P, Pn), align_updown(P4, Pn).
-move8([[P1,P2,P3], [P4,P5,P6], [P7,P,P9]], [[P1,P2,P3], [P4,P5,P6], [P7,Pn,P9]]) :- move(P, Pn), align_updown(P5, Pn), align_leftright(P7, Pn).
-move9([[P1,P2,P3], [P4,P5,P6], [P7,P8,P]], [[P1,P2,P3], [P4,P5,P6], [P7,P8,Pn]]) :- move(P, Pn), align_updown(P6, Pn), align_leftright(P8, Pn).
-
-move0(A, B) :- move1(A, B); move2(A, B); move3(A, B);
-               move4(A, B); move5(A, B); move6(A, B);
-               move7(A, B); move8(A, B); move9(A, B). 
-
-align(negA, a).
-align(negB, b).
-align(negC, c).
-align(negD, d).
-
-align_updown([_, _, X, _], [Y, _, _, _]) :- (align(X, Y); align(Y, X)).
-align_leftright([_, X, _, _], [_, _, _, Y]) :- align(X, Y); align(Y, X).
-align3_updown(X, Y, Z) :- align_updown(X, Y), align_updown(Y, Z).
-align3_leftright(X, Y, Z) :- align_leftright(X, Y), align_leftright(Y, Z).
-
-goal([[P1,P2,P3], [P4,P5,P6], [P7,P8,P9]]) :-
-    align3_updown(P1, P4, P7),
-    align3_updown(P2, P5, P8),
-    align3_updown(P3, P6, P9),
-    align3_leftright(P1, P2, P3),
-    align3_leftright(P4, P5, P6),
-    align3_leftright(P7, P8, P9),
-    writeln("Found the solution.").
-
-member(X, [Y|T]) :- X = Y; member(X, T).
-
-dfs(S, SoFar):-
-	move0(S, S2), 
-	\+member(S2, SoFar),
-	(goal(S2); dfs(S2, [S2|SoFar])).
-
-solve :- dfs([[[negA, negB, c, d], [a, d, negC, negD], [negD, negC, b, d]], [[negB, negD, negC, d], [d, b, negC, negA], [negA, negD, c, b]],
-[[negA, negB, c, b], [b, negA, negC, a], [negB, a, d, negC]]], []).
-
-solve.
-
-% Or maybe like this:
-/*
-1. [-a, -c, +a, +b]
-2. [+b, -a, -b, +c]
-3. [-a, -d, +c, +b]
-...
-*/
-
-% Original positions:
+% Given parts:
 /*
 1         2         3
 +------+  +------+  +------+
@@ -88,3 +21,69 @@ solve.
 |  +b  |  |  +a  |  |  +d  |
 +------+  +------+  +------+
 */
+
+% Assert that an item is in a list.
+member(X, [Y|Ys]) :- X = Y; member(X, Ys).
+
+% Assert that one part is a rotation of another.
+% Parts are represented as lists of [Up, Right, Down, Left] symbols.
+% (This order is the same as CSS properties.)
+rotation([A, B, C, D], [A, B, C, D]).
+rotation([A, B, C, D], [B, C, D, A]).
+rotation([A, B, C, D], [C, D, A, B]).
+rotation([A, B, C, D], [D, A, B, C]).
+
+% Assert that a board includes a part at some position and rotation.
+% Boards are represented as lists of rows, which are themselves lists of cells.
+check_part(Board, Part) :- member(Row, Board), member(Cell, Row), rotation(Part, Cell).
+
+% Assert that a board includes each part in a list.
+check_rotations(_, []).
+check_rotations(Board, [Part|Parts]) :- check_part(Board, Part), check_rotations(Board, Parts).
+
+% Assert that two symbols are opposites, i.e. same letter and opposite signs.
+% (+a and -a, +b and -b, +c and -c, +d and -d.)
+opposites(a, na).
+opposites(na, a).
+opposites(b, nb).
+opposites(nb, b).
+opposites(c, nc).
+opposites(nc, c).
+opposites(d, nd).
+opposites(nd, d).
+
+% Assert that two parts are aligned horizontally: the bottom of the first
+% is the opposite of the top of the second.
+align_horizontal([_, _, Down, _], [Up, _, _, _]) :- opposites(Down, Up).
+
+% Assert that two parts are aligned vertically: the right side of the first
+% is the opposite of the left side of the second.
+align_vertical([_, Right, _, _], [_, _, _, Left]) :- opposites(Right, Left).
+
+% Assert that the adjacent edges of all parts in a board are aligned.
+check_edges(Board) :-
+	Board = [[P1, P2, P3], [P4, P5, P6], [P7, P8, P9]],
+	align_horizontal(P1, P2),
+	align_horizontal(P2, P3),
+	align_horizontal(P4, P5),
+	align_horizontal(P5, P6),
+	align_horizontal(P7, P8),
+	align_horizontal(P8, P9),
+	align_vertical(P1, P4),
+	align_vertical(P4, P7),
+	align_vertical(P2, P5),
+	align_vertical(P5, P8),
+	align_vertical(P3, P6),
+	align_vertical(P6, P9).
+
+% Assert that a board is a solution to the puzzle: its parts have aligned edges
+% and are all taken from the given nine parts.
+solution(Board) :-
+	check_edges(Board),
+	Parts = [[nb, c, d, na], [a, d, nc, nd], [nc, b, d, nd],
+		[nd, nc, d, nb], [b, nc, na, d], [na, nd, c, b],
+		[nb, c, b, na], [na, nc, a, b], [nb, a, d, nc]],
+	check_rotations(Board, Parts),
+	(writeln(Board), fail; true).
+
+assemble :- solution(_).
