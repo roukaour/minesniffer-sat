@@ -70,35 +70,37 @@ write_schedule([]).
 write_schedule([[From, To]|Schedule]) :- write_schedule(Schedule), write_crossing(From, To).
 
 % Write a complete change from one state to the next.
-write_crossing([left|From], [right, ML, CL, MR, CR]) :-
-	write_delta([ML, CL, MR, CR], From), writeln(' cross left to right.'),
-	write('    ('), write_state(ML, CL, MR, CR), writeln('boat is on right.)').
-write_crossing([right, ML, CL, MR, CR], [left|To]) :-
-	write_delta([ML, CL, MR, CR], To), writeln(' cross right to left.'),
-	write('    ('), write_state(ML, CL, MR, CR), writeln('boat is on left.)').
+write_crossing([left|From], [right|To]) :-
+	write_left_delta(To, From), writeln(' cross left to right.'),
+	write_state([right|To]).
+write_crossing([right|From], [left|To]) :-
+	write_left_delta(From, To), writeln(' cross right to left.'),
+	write_state([left|To]).
 
 % Write a quantity with its singular or plural case.
 write_quantity(1, Singular, _) :- write(1), write(' '), write(Singular).
 write_quantity(Q, _, Plural) :- write(Q), write(' '), write(Plural).
 
-% Write which items changed from one state to the next.
-write_delta([ML, CL, _, _], [ML2, CL, _, _]) :-
+% Write which items changed on the left bank from one state to the next.
+write_left_delta([ML, CL, _, _], [ML2, CL, _, _]) :-
 	M is ML2 - ML,
 	write_quantity(M, 'missionary', 'missionaries').
-write_delta([ML, CL, _, _], [ML, CL2, _, _]) :-
+write_left_delta([ML, CL, _, _], [ML, CL2, _, _]) :-
 	C is CL2 - CL,
 	write_quantity(C, 'cannibal', 'cannibals').
-write_delta([ML, CL, _, _], [ML2, CL2, _, _]) :-
+write_left_delta([ML, CL, _, _], [ML2, CL2, _, _]) :-
 	M is ML2 - ML, C is CL2 - CL,
 	write_quantity(M, 'missionary', 'missionaries'),
 	write(' and '),
 	write_quantity(C, 'cannibal', 'cannibals').
 
 % Write a single state of the problem.
-write_state(ML, CL, MR, CR) :-
+write_state([B, ML, CL, MR, CR]) :-
+	write('    ('),
 	write_quantity(ML, 'M', 'Ms'), write(' and '),
 	write_quantity(CL, 'C', 'Cs'), write(' on left; '),
 	write_quantity(MR, 'M', 'Ms'), write(' and '),
-	write_quantity(CR, 'C', 'Cs'), write(' on right; ').
+	write_quantity(CR, 'C', 'Cs'), write(' on right; '),
+	write('boat is on '), write(B), writeln('.)').
 
 schedule :- solution([left, 3, 3, 0, 0], [right, 0, 0, 3, 3]).
