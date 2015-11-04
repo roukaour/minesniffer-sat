@@ -1,4 +1,5 @@
 % II.1 - The Missionaries and Cannibals Problem
+% To run it, type 'schedule.' in XSB.
 
 % Assert that the quantities of missionaries and cannibals on both banks are valid and safe.
 valid(ML, CL, MR, CR) :-

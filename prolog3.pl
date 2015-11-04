@@ -1,4 +1,5 @@
 % II.3 - The Puzzling Case of the Water and Zebra
+% To run it, type 'solve.' in XSB.
 
 % Assert that two items in two lists have corresponding relative positions.
 correspond(A, [A|_], B, [B|_]).
@@ -50,9 +51,9 @@ solution(Colors, Drinks, Nations, Smokes, Pets) :-
 	Drinks = [_, _, milk, _, _],
 	% Who drinks water?
 	correspond(water, Drinks, WhoDrinksWater, Nations),
-	(write('The '), write(WhoDrinksWater), writeln(' drinks water.'), fail; true),
+	write('The '), write(WhoDrinksWater), writeln(' drinks water.'),
 	% Who keeps the zebra?
 	correspond(zebra, Pets, WhoKeepsTheZebra, Nations),
-	(write('The '), write(WhoKeepsTheZebra), writeln(' keeps the zebra.'), fail; true).
+	write('The '), write(WhoKeepsTheZebra), writeln(' keeps the zebra.').
 
 solve :- solution(_, _, _, _, _).

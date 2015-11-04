@@ -1,4 +1,5 @@
 % II.2 - The Assembly Problem
+% To run it, type 'assemble.' in XSB.
 
 % Given parts:
 /*
