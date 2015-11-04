@@ -54,7 +54,7 @@ crossing([right, ML, CL, MR, CR], [left, ML2, CL2, MR2, CR2]) :-
 member(X, [Y|Ys]) :- X = Y; member(X, Ys).
 
 solution(Start, Finish, Visited, Schedule) :-
-	% Perform a moveing to advance to the next state.
+	% Perform a crossing to advance to the next state.
 	crossing(Start, Next),
 	% The next state should not have been visited, or we could infinitely loop.
 	not(member(Next, Visited)),
