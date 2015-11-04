@@ -53,6 +53,8 @@ crossing([right, ML, CL, MR, CR], [left, ML2, CL2, MR2, CR2]) :-
 % Assert that an item is in a list.
 member(X, [Y|Ys]) :- X = Y; member(X, Ys).
 
+solution(Start, Finish) :- solution(Start, Finish, [Start], _).
+
 solution(Start, Finish, Visited, Schedule) :-
 	% Perform a crossing to advance to the next state.
 	crossing(Start, Next),
@@ -94,10 +96,9 @@ write_delta([ML, CL, _, _], [ML2, CL2, _, _]) :-
 
 % Write a single state of the problem.
 write_state(ML, CL, MR, CR) :-
-	write_quantity(ML, 'm.', 'm.s'), write(' and '),
-	write_quantity(CL, 'c.', 'c.s'), write(' on left; '),
-	write_quantity(MR, 'm.', 'm.s'), write(' and '),
-	write_quantity(CR, 'c.', 'c.s'), write(' on right; ').
+	write_quantity(ML, 'M', 'Ms'), write(' and '),
+	write_quantity(CL, 'C', 'Cs'), write(' on left; '),
+	write_quantity(MR, 'M', 'Ms'), write(' and '),
+	write_quantity(CR, 'C', 'Cs'), write(' on right; ').
 
-schedule :-
-	solution([left, 3, 3, 0, 0], [right, 0, 0, 3, 3], [[left, 3, 3, 0, 0]], _).
+schedule :- solution([left, 3, 3, 0, 0], [right, 0, 0, 3, 3]).
