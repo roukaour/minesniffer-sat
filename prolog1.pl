@@ -63,20 +63,23 @@ solution(Start, Finish, Visited, Schedule) :-
 
 solution(Finish, Finish, _, Schedule) :- write_schedule(Schedule).
 
+% Write a complete schedule of state changes.
+write_schedule([]).
+write_schedule([[From, To]|Schedule]) :- write_schedule(Schedule), write_crossing(From, To).
+
+% Write a complete change from one state to the next.
+write_crossing([left|From], [right, ML, CL, MR, CR]) :-
+	write_delta([ML, CL, MR, CR], From), writeln(' cross left to right.'),
+	write('    ('), write_state(ML, CL, MR, CR), writeln('boat is on right.)').
+write_crossing([right, ML, CL, MR, CR], [left|To]) :-
+	write_delta([ML, CL, MR, CR], To), writeln(' cross right to left.'),
+	write('    ('), write_state(ML, CL, MR, CR), writeln('boat is on left.)').
+
 % Write a quantity with its singular or plural case.
 write_quantity(1, Singular, _) :- write(1), write(' '), write(Singular).
 write_quantity(Q, _, Plural) :- write(Q), write(' '), write(Plural).
 
-write_schedule([]).
-write_schedule([[From, To]|Schedule]) :- write_schedule(Schedule), write_crossing(From, To).
-
-write_crossing([left|From], [right, ML, CL, MR, CR]) :-
-	write_delta([ML, CL, MR, CR], From), writeln(' cross left to right.'),
-	write('('), write_state(ML, CL, MR, CR), writeln('boat is on right.)').
-write_crossing([right, ML, CL, MR, CR], [left|To]) :-
-	write_delta([ML, CL, MR, CR], To), writeln(' cross right to left.'),
-	write('('), write_state(ML, CL, MR, CR), writeln('boat is on left.)').
-
+% Write which items changed from one state to the next.
 write_delta([ML, CL, _, _], [ML2, CL, _, _]) :-
 	M is ML2 - ML,
 	write_quantity(M, 'missionary', 'missionaries').
@@ -89,6 +92,7 @@ write_delta([ML, CL, _, _], [ML2, CL2, _, _]) :-
 	write(' and '),
 	write_quantity(C, 'cannibal', 'cannibals').
 
+% Write a single state of the problem.
 write_state(ML, CL, MR, CR) :-
 	write_quantity(ML, 'm.', 'm.s'), write(' and '),
 	write_quantity(CL, 'c.', 'c.s'), write(' on left; '),
