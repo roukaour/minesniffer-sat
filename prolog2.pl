@@ -23,68 +23,90 @@
 +------+  +------+  +------+
 */
 
-% Assert that an item is in a list.
-member(X, [Y|Ys]) :- X = Y; member(X, Ys).
-
-% Assert that one part is a rotation of another.
-% Parts are represented as lists of [Up, Right, Down, Left] symbols.
-% (This order is the same as CSS properties.)
-rotation([A, B, C, D], [A, B, C, D]).
-rotation([A, B, C, D], [B, C, D, A]).
-rotation([A, B, C, D], [C, D, A, B]).
-rotation([A, B, C, D], [D, A, B, C]).
-
-% Assert that a board includes a part at some position and rotation.
-% Boards are represented as lists of rows, which are themselves lists of cells.
-check_part(Board, Part) :- member(Row, Board), member(Cell, Row), rotation(Part, Cell).
-
-% Assert that a board includes each part in a list.
-check_rotations(_, []).
-check_rotations(Board, [Part|Parts]) :- check_part(Board, Part), check_rotations(Board, Parts).
-
 % Assert that two symbols are opposites, i.e. same letter and opposite signs.
 % (+a and -a, +b and -b, +c and -c, +d and -d.)
-opposites(a, na).
-opposites(na, a).
-opposites(b, nb).
-opposites(nb, b).
-opposites(c, nc).
-opposites(nc, c).
-opposites(d, nd).
-opposites(nd, d).
+opposites(pa, na).
+opposites(na, pa).
+opposites(pb, nb).
+opposites(nb, pb).
+opposites(pc, nc).
+opposites(nc, pc).
+opposites(pd, nd).
+opposites(nd, pd).
 
-% Assert that two parts are aligned horizontally: the bottom of the first
-% is the opposite of the top of the second.
-align_horizontal([_, _, Down, _], [Up, _, _, _]) :- opposites(Down, Up).
-
-% Assert that two parts are aligned vertically: the right side of the first
+% Assert that two parts are aligned horizontally: the right side of the first
 % is the opposite of the left side of the second.
-align_vertical([_, Right, _, _], [_, _, _, Left]) :- opposites(Right, Left).
+align_horizontal(x, _).
+align_horizontal(_, x).
+align_horizontal([_, R, _, _], [_, _, _, L]) :- opposites(R, L).
 
-% Assert that the adjacent edges of all parts in a board are aligned.
-check_edges(Board) :-
-	Board = [[P1, P2, P3], [P4, P5, P6], [P7, P8, P9]],
+% Assert that two parts are aligned vertically: the bottom of the first
+% is the opposite of the top of the second.
+align_vertical(x, _).
+align_vertical(_, x).
+align_vertical([_, _, B, _], [T, _, _, _]) :- opposites(B, T).
+
+% Assert that one part is a rotation of another, 90 degrees clockwise.
+% Parts are represented as lists of [Top, Right, Bottom, Left] symbols.
+% (This order is the same as CSS properties.)
+rotated([T, R, B, L], [L, T, R, B]).
+
+place(P1, [[x,P2,P3],[P4,P5,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+	align_horizontal(P1, P2),
+	align_vertical(P1, P4).
+
+place(P2, [[P1,x,P3],[P4,P5,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
 	align_horizontal(P1, P2),
 	align_horizontal(P2, P3),
+	align_vertical(P2, P5).
+
+place(P3, [[P1,P2,x],[P4,P5,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+	align_horizontal(P2, P3),
+	align_vertical(P3, P6).
+
+place(P4, [[P1,P2,P3],[x,P5,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+	align_horizontal(P4, P5),
+	align_vertical(P1, P4),
+	align_vertical(P4, P7).
+
+place(P5, [[P1,P2,P3],[P4,x,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
 	align_horizontal(P4, P5),
 	align_horizontal(P5, P6),
-	align_horizontal(P7, P8),
-	align_horizontal(P8, P9),
-	align_vertical(P1, P4),
-	align_vertical(P4, P7),
 	align_vertical(P2, P5),
-	align_vertical(P5, P8),
+	align_vertical(P5, P8).
+
+place(P6, [[P1,P2,P3],[P4,P5,x],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+	align_horizontal(P5, P6),
 	align_vertical(P3, P6),
 	align_vertical(P6, P9).
 
-% Assert that a board is a solution to the puzzle: its parts have aligned edges
-% and are all taken from the given nine parts.
-solution(Board) :-
-	check_edges(Board),
-	Parts = [[nb, c, d, na], [a, d, nc, nd], [nc, b, d, nd],
-		[nd, nc, d, nb], [b, nc, na, d], [na, nd, c, b],
-		[nb, c, b, na], [na, nc, a, b], [nb, a, d, nc]],
-	check_rotations(Board, Parts),
-	(writeln(Board), fail; true).
+place(P7, [[P1,P2,P3],[P4,P5,P6],[x,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+	align_horizontal(P7, P8),
+	align_vertical(P4, P7).
 
-assemble :- solution(_).
+place(P8, [[P1,P2,P3],[P4,P5,P6],[P7,x,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+	align_horizontal(P7, P8),
+	align_horizontal(P8, P9),
+	align_vertical(P5, P8).
+
+place(P9, [[P1,P2,P3],[P4,P5,P6],[P7,P8,x]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+	align_horizontal(P8, P9),
+	align_vertical(P6, P9).
+
+solution(Board, [R1|Pieces]) :-
+	rotated(R1, R2),
+	rotated(R2, R3),
+	rotated(R3, R4),
+	% Try placing a piece in all possible spaces.
+	place(Piece, Board, NextBoard),
+	% Try all four rotations of the first piece.
+	(Piece = R1; Piece = R2; Piece = R3; Piece = R4),
+	% Recursively find a solution from the next board.
+	solution(NextBoard, Pieces).
+
+solution([R1, R2, R3], []) :- writeln(R1), writeln(R2), writeln(R3).
+
+assemble :- solution([[x, x, x], [x, x, x], [x, x, x]],
+	[[nb, pc, pd, na], [pa, pd, nc, nd], [nc, pb, pd, nd],
+	[nd, nc, pd, nb], [pb, nc, na, pd], [na, nd, pc, pb],
+	[nb, pc, pb, na], [na, nc, pa, pb], [nb, pa, pd, nc]]).
