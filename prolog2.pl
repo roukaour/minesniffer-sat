@@ -3,24 +3,17 @@
 
 % Given parts:
 /*
-1         2         3
-+------+  +------+  +------+
-|  -b  |  |  +a  |  |  -c  |
-|-a  +c|  |-d  +d|  |-d  +b|
-|  +d  |  |  -c  |  |  +d  |
-+------+  +------+  +------+
-4         5         6
-+------+  +------+  +------+
-|  -d  |  |  +b  |  |  -a  |
-|-b  -c|  |+d  -c|  |+b  -d|
-|  +d  |  |  -a  |  |  +c  |
-+------+  +------+  +------+
-7         8         9
-+------+  +------+  +------+
-|  -b  |  |  -a  |  |  -b  |
-|-a  +c|  |+b  -c|  |-c  +a|
-|  +b  |  |  +a  |  |  +d  |
-+------+  +------+  +------+
+1 -b  |2 +a  |3 -c
+-a  +c|-d  +d|-d  +b
+  +d  |  -c  |  +d
+------+------+------
+4 -d  |5 +b  |6 -a
+-b  -c|+d  -c|+b  -d
+  +d  |  -a  |  +c
+------+------+------
+7 -b  |8 -a  |9 -b
+-a  +c|+b  -c|-c  +a
+  +b  |  +a  |  +d
 */
 
 % Assert that two symbols are opposites, i.e. same letter and opposite signs.
@@ -38,58 +31,58 @@ opposites(nd, pd).
 % is the opposite of the left side of the second.
 align_horizontal(x, _).
 align_horizontal(_, x).
-align_horizontal([_, R, _, _], [_, _, _, L]) :- opposites(R, L).
+align_horizontal([_, _, R, _, _], [_, _, _, _, L]) :- opposites(R, L).
 
 % Assert that two parts are aligned vertically: the bottom of the first
 % is the opposite of the top of the second.
 align_vertical(x, _).
 align_vertical(_, x).
-align_vertical([_, _, B, _], [T, _, _, _]) :- opposites(B, T).
+align_vertical([_, _, _, B, _], [_, T, _, _, _]) :- opposites(B, T).
 
 % Assert that one part is a rotation of another, 90 degrees clockwise.
 % Parts are represented as lists of [Top, Right, Bottom, Left] symbols.
 % (This order is the same as CSS properties.)
-rotated([T, R, B, L], [L, T, R, B]).
+rotated([N, T, R, B, L], [N, L, T, R, B]).
 
-place(P1, [[x,P2,P3],[P4,P5,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P1, [x,P2,P3,P4,P5,P6,P7,P8,P9], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P1, P2),
 	align_vertical(P1, P4).
 
-place(P2, [[P1,x,P3],[P4,P5,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P2, [P1,x,P3,P4,P5,P6,P7,P8,P9], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P1, P2),
 	align_horizontal(P2, P3),
 	align_vertical(P2, P5).
 
-place(P3, [[P1,P2,x],[P4,P5,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P3, [P1,P2,x,P4,P5,P6,P7,P8,P9], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P2, P3),
 	align_vertical(P3, P6).
 
-place(P4, [[P1,P2,P3],[x,P5,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P4, [P1,P2,P3,x,P5,P6,P7,P8,P9], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P4, P5),
 	align_vertical(P1, P4),
 	align_vertical(P4, P7).
 
-place(P5, [[P1,P2,P3],[P4,x,P6],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P5, [P1,P2,P3,P4,x,P6,P7,P8,P9], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P4, P5),
 	align_horizontal(P5, P6),
 	align_vertical(P2, P5),
 	align_vertical(P5, P8).
 
-place(P6, [[P1,P2,P3],[P4,P5,x],[P7,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P6, [P1,P2,P3,P4,P5,x,P7,P8,P9], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P5, P6),
 	align_vertical(P3, P6),
 	align_vertical(P6, P9).
 
-place(P7, [[P1,P2,P3],[P4,P5,P6],[x,P8,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P7, [P1,P2,P3,P4,P5,P6,x,P8,P9], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P7, P8),
 	align_vertical(P4, P7).
 
-place(P8, [[P1,P2,P3],[P4,P5,P6],[P7,x,P9]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P8, [P1,P2,P3,P4,P5,P6,P7,x,P9], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P7, P8),
 	align_horizontal(P8, P9),
 	align_vertical(P5, P8).
 
-place(P9, [[P1,P2,P3],[P4,P5,P6],[P7,P8,x]], [[P1,P2,P3],[P4,P5,P6],[P7,P8,P9]]) :-
+place(P9, [P1,P2,P3,P4,P5,P6,P7,P8,x], [P1,P2,P3,P4,P5,P6,P7,P8,P9]) :-
 	align_horizontal(P8, P9),
 	align_vertical(P6, P9).
 
@@ -104,21 +97,25 @@ solution(Board, [R1|Pieces]) :-
 	% Recursively find a solution from the next board.
 	solution(NextBoard, Pieces).
 
-solution([R1, R2, R3], []) :-
-	write_row(R1),
-	writeln('------+------+------'),
-	write_row(R2),
-	writeln('------+------+------'),
-	write_row(R3).
+solution(Board, []) :- write_board(Board).
 
-write_row([[T1, R1, B1, L1], [T2, R2, B2, L2], [T3, R3, B3, L3]]) :-
-	write('  '), write_symbol(T1), write('  |  '), write_symbol(T2),
-		write('  |  '), write_symbol(T3), writeln(''),
-	write_symbol(L1), write('  '), write_symbol(R1), write('|'), write_symbol(L2),
-		write('  '), write_symbol(R2), write('|'), write_symbol(L3), write('  '),
-		write_symbol(R3), writeln(''),
-	write('  '), write_symbol(B1), write('  |  '), write_symbol(B2),
-		write('  |  '), write_symbol(B3), writeln('').
+write_board([P1, P2, P3, P4, P5, P6, P7, P8, P9]) :-
+	write_row(P1, P2, P3),
+	writeln('------+------+------'),
+	write_row(P4, P5, P6),
+	writeln('------+------+------'),
+	write_row(P7, P8, P9).
+
+write_row([N1, T1, R1, B1, L1], [N2, T2, R2, B2, L2], [N3, T3, R3, B3, L3]) :-
+	write(N1), write(' '), write_symbol(T1), write('  |'),
+	write(N2), write(' '), write_symbol(T2), write('  |'),
+	write(N3), write(' '), write_symbol(T3), writeln(''),
+	write_symbol(L1), write('  '), write_symbol(R1), write('|'),
+	write_symbol(L2), write('  '), write_symbol(R2), write('|'),
+	write_symbol(L3), write('  '), write_symbol(R3), writeln(''),
+	write('  '), write_symbol(B1), write('  |  '),
+	write_symbol(B2), write('  |  '),
+	write_symbol(B3), writeln('').
 
 write_symbol(pa) :- write('+a').
 write_symbol(na) :- write('-a').
@@ -129,7 +126,14 @@ write_symbol(nc) :- write('-c').
 write_symbol(pd) :- write('+d').
 write_symbol(nd) :- write('-d').
 
-assemble :- solution([[x, x, x], [x, x, x], [x, x, x]],
-	[[nb, pc, pd, na], [pa, pd, nc, nd], [nc, pb, pd, nd],
-	[nd, nc, pd, nb], [pb, nc, na, pd], [na, nd, pc, pb],
-	[nb, pc, pb, na], [na, nc, pa, pb], [nb, pa, pd, nc]]).
+solve(Pieces) :-
+	writeln('Given:'),
+	write_board(Pieces),
+	writeln(''),
+	writeln('Solution:'),
+	solution([x, x, x, x, x, x, x, x, x], Pieces).
+
+assemble :- solve([
+	[1, nb, pc, pd, na], [2, pa, pd, nc, nd], [3, nc, pb, pd, nd],
+	[4, nd, nc, pd, nb], [5, pb, nc, na, pd], [6, na, nd, pc, pb],
+	[7, nb, pc, pb, na], [8, na, nc, pa, pb], [9, nb, pa, pd, nc]]).
