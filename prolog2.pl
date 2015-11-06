@@ -104,7 +104,30 @@ solution(Board, [R1|Pieces]) :-
 	% Recursively find a solution from the next board.
 	solution(NextBoard, Pieces).
 
-solution([R1, R2, R3], []) :- writeln(R1), writeln(R2), writeln(R3).
+solution([R1, R2, R3], []) :-
+	write_row(R1),
+	writeln('------+------+------'),
+	write_row(R2),
+	writeln('------+------+------'),
+	write_row(R3).
+
+write_row([[T1, R1, B1, L1], [T2, R2, B2, L2], [T3, R3, B3, L3]]) :-
+	write('  '), write_symbol(T1), write('  |  '), write_symbol(T2),
+		write('  |  '), write_symbol(T3), writeln(''),
+	write_symbol(L1), write('  '), write_symbol(R1), write('|'), write_symbol(L2),
+		write('  '), write_symbol(R2), write('|'), write_symbol(L3), write('  '),
+		write_symbol(R3), writeln(''),
+	write('  '), write_symbol(B1), write('  |  '), write_symbol(B2),
+		write('  |  '), write_symbol(B3), writeln('').
+
+write_symbol(pa) :- write('+a').
+write_symbol(na) :- write('-a').
+write_symbol(pb) :- write('+b').
+write_symbol(nb) :- write('-b').
+write_symbol(pc) :- write('+c').
+write_symbol(nc) :- write('-c').
+write_symbol(pd) :- write('+d').
+write_symbol(nd) :- write('-d').
 
 assemble :- solution([[x, x, x], [x, x, x], [x, x, x]],
 	[[nb, pc, pd, na], [pa, pd, nc, nd], [nc, pb, pd, nd],
